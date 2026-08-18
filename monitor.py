@@ -49,8 +49,6 @@ if __name__ == "__main__":
         format="%(asctime)s %(levelname)s %(message)s"
     )
 
-    print("HAUPTPROGRAMM LIEF")  # Kontrollzeile – bleibt vorerst
-
     urls = lade_targets("targets.txt")
 
     for url in urls:
