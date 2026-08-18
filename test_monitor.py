@@ -6,4 +6,4 @@ def test_lade_targets_filtert_leerzeilen(tmp_path):
     
     ergebnis = lade_targets(str(datei))
     
-    assert ergebnis == [...]   
+    assert ergebnis == ["https://a.ch", "https://b.ch"]    

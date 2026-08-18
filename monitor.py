@@ -2,13 +2,6 @@ import requests
 import time
 import logging
 
-# ----- Logging konfigurieren -----
-logging.basicConfig(
-    filename="monitor.log",
-    level=logging.INFO,
-    format="%(asctime)s %(levelname)s %(message)s"
-)
-
 
 def lade_targets(pfad):
     """
@@ -47,18 +40,28 @@ def pruefe_url(url):
         return {"url": url, "status": None, "dauer": dauer, "fehler": f"UNKNOWN ERROR: {e}"}
 
 
-# ----- Hauptprogramm -----
-urls = lade_targets("targets.txt")
+# ----- Hauptprogramm (nur wenn Skript direkt ausgeführt wird) -----
+if __name__ == "__main__":
+    # Logging konfigurieren
+    logging.basicConfig(
+        filename="monitor.log",
+        level=logging.INFO,
+        format="%(asctime)s %(levelname)s %(message)s"
+    )
 
-for url in urls:
-    ergebnis = pruefe_url(url)
+    print("HAUPTPROGRAMM LIEF")  # Kontrollzeile – bleibt vorerst
 
-    if ergebnis["fehler"] is None:
-        # Erfolgreiche Antwort
-        if ergebnis["status"] >= 400:
-            logging.warning(f"{ergebnis['url']} | Status {ergebnis['status']} (HTTP FEHLER) | {ergebnis['dauer']:.3f}s")
+    urls = lade_targets("targets.txt")
+
+    for url in urls:
+        ergebnis = pruefe_url(url)
+
+        if ergebnis["fehler"] is None:
+            # Erfolgreiche Antwort
+            if ergebnis["status"] >= 400:
+                logging.warning(f"{ergebnis['url']} | Status {ergebnis['status']} (HTTP FEHLER) | {ergebnis['dauer']:.3f}s")
+            else:
+                logging.info(f"{ergebnis['url']} | Status {ergebnis['status']} | {ergebnis['dauer']:.3f}s")
         else:
-            logging.info(f"{ergebnis['url']} | Status {ergebnis['status']} | {ergebnis['dauer']:.3f}s")
-    else:
-        # Fehlerfall
-        logging.error(f"{ergebnis['url']} | {ergebnis['fehler']} | {ergebnis['dauer']:.3f}s")
+            # Fehlerfall
+            logging.error(f"{ergebnis['url']} | {ergebnis['fehler']} | {ergebnis['dauer']:.3f}s")
