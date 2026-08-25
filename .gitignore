@@ -1,5 +1,6 @@
 .venv/
 learning.txt
+getstarted.txt
 __pycache__/
 monitor.log
 *.pyc
