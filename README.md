@@ -12,7 +12,7 @@ prüft, ob Websites erreichbar sind, und die Ergebnisse protokolliert.
 - [x] Betrieb als systemd-Service mit Timer
 - [ ] Docker-Container
 - [ ] GitHub-Actions-Pipeline
-- [ ] `/metrics`-Endpoint für Prometheus
+- [ ] optional: `/metrics`-Endpoint für Prometheus
 
 ## Funktion
 
