@@ -10,7 +10,8 @@ prüft, ob Websites erreichbar sind, und die Ergebnisse protokolliert.
 - [x] Fehlerbehandlung: Timeout, Verbindungsfehler, HTTP-Fehler
 - [x] Unit-Tests mit pytest und Mocking
 - [x] Betrieb als systemd-Service mit Timer
-- [ ] Docker-Container
+- [x] Neuen User erstellen und konfigurieren für Docker
+- [x] Docker-Container
 - [ ] GitHub-Actions-Pipeline
 - [ ] optional: `/metrics`-Endpoint für Prometheus
 
