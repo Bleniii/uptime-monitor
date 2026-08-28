@@ -2,6 +2,14 @@ import requests
 import time
 import logging
 
+"""HTTP-Statuscodes, grob nach erster Ziffer:
+    2xx  Erfolg            z. B. 200 OK
+    3xx  Weiterleitung     z. B. 301 dauerhaft, 302 temporär
+    4xx  Fehler beim Client 400 ungültig, 401 nicht angemeldet,
+                            403 verboten, 404 nicht gefunden
+    5xx  Fehler beim Server 500 intern, 502 Gateway, 503 überlastet,
+                            504 Gateway-Timeout
+"""
 
 def lade_targets(pfad):
     """
