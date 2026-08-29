@@ -8,4 +8,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY monitor.py .
 COPY targets.txt .
 
+RUN useradd --create-home appuser
+USER appuser
+
 CMD ["python", "monitor.py"]
