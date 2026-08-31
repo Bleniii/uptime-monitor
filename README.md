@@ -1,4 +1,5 @@
 # Uptime Monitor
+[![Tests](https://github.com/Bleniii/uptime-monitor/actions/workflows/tests.yml/badge.svg)](https://github.com/Bleniii/uptime-monitor/actions/workflows/tests.yml)
 
 Ein kleines Werkzeug, das
 prüft, ob Websites erreichbar sind, und die Ergebnisse protokolliert.
@@ -12,7 +13,7 @@ prüft, ob Websites erreichbar sind, und die Ergebnisse protokolliert.
 - [x] Betrieb als systemd-Service mit Timer
 - [x] Neuen User erstellen und konfigurieren für Docker
 - [x] Docker-Container
-- [ ] GitHub-Actions-Pipeline
+- [x] GitHub-Actions-Pipeline
 - [ ] optional: `/metrics`-Endpoint für Prometheus
 
 ## Funktion
