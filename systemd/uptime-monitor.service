@@ -3,6 +3,11 @@ Description=Uptime Monitor - prueft konfigurierte URLs
 
 [Service]
 Type=simple
+Restart=always
+RestartSec=10
 User=bleni
 WorkingDirectory=/home/bleni/uptime-monitor
 ExecStart=/home/bleni/uptime-monitor/.venv/bin/python monitor.py
+
+[Install]
+WantedBy=multi-user.target

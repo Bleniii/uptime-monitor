@@ -1,9 +1,9 @@
-[Unit]
-Description=Startet den Uptime Monitor regelmaessig
+#[Unit]
+#Description=Startet den Uptime Monitor regelmaessig
 
-[Timer]
-OnBootSec=1min
-OnUnitActiveSec=10min
+#[Timer]
+#OnBootSec=1min
+#OnUnitActiveSec=10min
 
-[Install]
-WantedBy=timers.target
+#[Install]
+#WantedBy=timers.target
