@@ -14,8 +14,11 @@ prüft, ob Websites erreichbar sind, und die Ergebnisse protokolliert.
 - [x] Docker-Container
 - [x] GitHub-Actions-Pipeline
 - [x] `/metrics`-Endpoint für Prometheus
+- [ ] Dokumentation nachführen für Prometheus
+- [ ] Versionierung und Dokumentation: Einführung und Dokumentation: Code
 - [ ] Docker-Image-Build in der Pipeline
 - [ ] DNS-Fehler von Verbindungsfehlern trennen
+- [ ] Wissenstest zum Projekt & Dokumentation abschliessen
 
 ## Funktion
 
