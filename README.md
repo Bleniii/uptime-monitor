@@ -14,7 +14,7 @@ prüft, ob Websites erreichbar sind, und die Ergebnisse protokolliert.
 - [x] Neuen User erstellen und konfigurieren für Docker
 - [x] Docker-Container
 - [x] GitHub-Actions-Pipeline
-- [ ] optional: `/metrics`-Endpoint für Prometheus
+- [ ] `/metrics`-Endpoint für Prometheus
 
 ## Funktion
 
@@ -69,4 +69,4 @@ ExecStart=*anpassen* (Pfad-zum-projektordner/.venv/bin/python monitor.py)
 Dieses Projekt ist als Lernprojekt entstanden. Ziel war, Linux und typische DevOps-Werkzeuge 
 an einer echten Anwendung kennenzulernen. Systemdienste mit systemd, Containerisierung mit Docker, 
 automatisierte Tests und eine CI/CD-Pipeline. 
-Der Uptime-Monitor dient als cooles Feature, damit der Fokus auf dem Drumherum liegt.
+Der Uptime-Monitor dient als cooles Feature. Der Fokus liegt auf die Umgebung.

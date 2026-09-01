@@ -10,5 +10,6 @@ COPY targets.txt .
 
 RUN useradd --create-home appuser
 USER appuser
+EXPOSE 8000
 
 CMD ["python", "monitor.py"]

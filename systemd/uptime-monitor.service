@@ -2,7 +2,7 @@
 Description=Uptime Monitor - prueft konfigurierte URLs
 
 [Service]
-Type=oneshot
+Type=simple
 User=bleni
 WorkingDirectory=/home/bleni/uptime-monitor
 ExecStart=/home/bleni/uptime-monitor/.venv/bin/python monitor.py
