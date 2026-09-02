@@ -1,4 +1,3 @@
-
 """HTTP-Statuscodes, grob nach erster Ziffer:
     2xx  Erfolg            z. B. 200 OK
     3xx  Weiterleitung     z. B. 301 dauerhaft, 302 temporär
@@ -11,6 +10,7 @@
 import requests
 import time
 import logging
+from urllib3.exceptions import NameResolutionError
 from prometheus_client import start_http_server, Gauge
 
 # Prometheus Metrics
@@ -45,9 +45,11 @@ def pruefe_url(url):
         dauer = time.time() - start
         return {"url": url, "status": None, "dauer": dauer, "fehler": "TIMEOUT"}
 
-    except requests.exceptions.ConnectionError:
+    except requests.exceptions.ConnectionError as e:
         dauer = time.time() - start
-        return {"url": url, "status": None, "dauer": dauer, "fehler": "CONNECTION ERROR"}
+        reason = getattr(e.args[0], "reason", None) if e.args else None
+        fehler = "DNS ERROR" if isinstance(reason, NameResolutionError) else "CONNECTION ERROR"
+        return {"url": url, "status": None, "dauer": dauer, "fehler": fehler}
 
     except Exception as e:
         dauer = time.time() - start
