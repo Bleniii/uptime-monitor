@@ -1,24 +1,27 @@
 # Uptime Monitor
+
 [![Tests](https://github.com/Bleniii/uptime-monitor/actions/workflows/tests.yml/badge.svg)](https://github.com/Bleniii/uptime-monitor/actions/workflows/tests.yml)
 
-Ein kleines Werkzeug, das
-prüft, ob Websites erreichbar sind, und die Ergebnisse protokolliert.
+Ein kleines Werkzeug, das prüft, ob Websites erreichbar sind, die Ergebnisse
+protokolliert und als Metriken für Prometheus bereitstellt.
 
 ## Status
 
 - [x] URL-Abfrage mit Statuscode und Antwortzeit
 - [x] Konfiguration über Datei, Logging
 - [x] Fehlerbehandlung: Timeout, Verbindungsfehler, HTTP-Fehler
+- [x] DNS-Fehler von Verbindungsfehlern trennen
 - [x] Unit-Tests mit pytest und Mocking
 - [x] Betrieb als systemd-Service
 - [x] Docker-Container
-- [x] GitHub-Actions-Pipeline
+- [x] GitHub-Actions-Pipeline mit Tests und Image-Build
 - [x] `/metrics`-Endpoint für Prometheus
-- [x] Dokumentation nachführen für Prometheus
-- [ ] Versionierung und Dokumentation: Einführung und Dokumentation: Code
-- [ ] Docker-Image-Build in der Pipeline
-- [x] DNS-Fehler von Verbindungsfehlern trennen
-- [ ] Wissenstest zum Projekt & Dokumentation abschliessen
+- [x] Prometheus und Grafana über docker-compose
+- [x] Dashboard: Verfügbarkeit, Antwortzeit, Statuscode
+- [ ] Dashboard als Code ins Repository
+- [ ] Alarmregel für `uptime_erreichbar == 0`
+- [ ] Versionierung und Dokumentation: Einführung und Code-Dokumentation
+- [ ] Wissenstest zum Projekt und Dokumentation abschliessen
 
 ## Funktion
 
@@ -32,7 +35,7 @@ prüft, ob Websites erreichbar sind, und die Ergebnisse protokolliert.
 ## Technik
 
 Python 3.11, requests, prometheus-client, pytest mit unittest.mock,
-systemd, Docker, GitHub Actions
+systemd, Docker, docker compose, Prometheus, Grafana, GitHub Actions
 
 ## Installation
 
@@ -49,7 +52,7 @@ pip install -r requirements.txt
 URLs in `targets.txt` eintragen, eine pro Zeile. Dann:
 
 ```bash
-python3 monitor.py
+python monitor.py
 ```
 
 Das Programm läuft dauerhaft und prüft alle 60 Sekunden. Metriken unter
@@ -60,8 +63,41 @@ Das Programm läuft dauerhaft und prüft alle 60 Sekunden. Metriken unter
 | Metrik | Bedeutung |
 |---|---|
 | `uptime_erreichbar{url}` | 1 = Antwort erhalten, 0 = keine |
-| `uptime_status{url}` | HTTP-Statuscode, fehlt wenn keine Antwort kam |
+| `uptime_status{url}` | HTTP-Statuscode. Die Zeitreihe verschwindet, sobald keine Antwort mehr kommt — ein stehengebliebener alter Wert wäre irreführend |
 | `uptime_versuchsdauer_sekunden{url}` | Dauer des Versuchs, auch im Fehlerfall |
+
+`uptime_erreichbar` und `uptime_status` beantworten verschiedene Fragen: Ein
+Statuscode 404 bedeutet, dass der Server geantwortet hat — erreichbar ist er
+also. Für die Alarmierung ergibt das zwei getrennte Regeln, eine für die
+Infrastruktur und eine für die Anwendung.
+
+## Monitoring-Stack
+
+Prometheus holt die Metriken ab, Grafana stellt sie dar. Alle drei Dienste
+laufen über eine `docker-compose.yml`:
+
+```bash
+docker compose up -d --build
+docker compose ps
+```
+
+| Dienst | Adresse | Zweck |
+|---|---|---|
+| Monitor | http://localhost:8000/metrics | Liefert die Messwerte |
+| Prometheus | http://localhost:9090 | Sammelt und speichert sie |
+| Grafana | http://localhost:3000 | Zeigt sie als Dashboard |
+
+Grafana meldet sich mit `admin` / `admin`. Die Prometheus-Datenquelle wird
+beim Start aus `grafana/provisioning/` eingelesen, sie muss nicht von Hand
+angelegt werden.
+
+Prometheus erreicht den Monitor über den Servicenamen `monitor:8000` im
+internen Compose-Netzwerk — nicht über `localhost`, das im Container auf den
+Container selbst zeigt.
+
+Die gesammelten Daten liegen in zwei Named Volumes (`prometheus-data`,
+`grafana-data`). `docker compose down` lässt sie bestehen, `docker compose
+down -v` löscht sie.
 
 ## Tests
 
@@ -72,6 +108,9 @@ pytest -v
 
 Die Tests für `pruefe_url` ersetzen `requests.get` durch einen Mock und laufen
 ohne Netzwerkzugriff.
+
+Bei jedem Push und Pull Request führt GitHub Actions dieselben Tests aus und
+baut das Docker-Image. Konfiguration unter `.github/workflows/tests.yml`.
 
 ## Betrieb als Dienst
 
@@ -97,6 +136,9 @@ journalctl -u uptime-monitor.service -f
 
 ## Docker
 
+Der normale Weg ist `docker compose up` (siehe Monitoring-Stack). Nur das
+Image allein bauen und starten:
+
 ```bash
 docker build -t uptime-monitor .
 docker run --rm -p 8000:8000 uptime-monitor
@@ -106,10 +148,19 @@ Der Container läuft unter einem unprivilegierten Benutzer. `-p 8000:8000`
 verbindet den Container-Port mit dem Host — ohne diese Angabe ist `/metrics`
 von aussen nicht erreichbar.
 
+**Port 8000 ist nur einmal vergeben.** systemd-Dienst, Compose-Stack und
+Einzelcontainer schliessen sich gegenseitig aus. Läuft eines davon bereits,
+scheitert das nächste mit `address already in use`.
+
 ## Hintergrund
 
 Dieses Projekt ist als Lernprojekt entstanden. Ziel war, Linux und typische
 DevOps-Werkzeuge an einer echten Anwendung kennenzulernen: Systemdienste mit
-systemd, Containerisierung mit Docker, automatisierte Tests und eine
-CI/CD-Pipeline. Der Uptime-Monitor selbst ist bewusst klein gehalten, damit
-der Fokus auf dem Drumherum liegt.
+systemd, Containerisierung mit Docker, automatisierte Tests, eine
+CI/CD-Pipeline und Observability mit Prometheus und Grafana. Der
+Uptime-Monitor selbst ist bewusst klein gehalten, damit der Fokus auf dem
+Drumherum liegt.
+
+## Lizenz
+
+MIT — siehe [LICENSE](LICENSE).
