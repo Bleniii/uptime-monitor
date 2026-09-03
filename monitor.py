@@ -91,6 +91,15 @@ if __name__ == "__main__":
                 # Metriken für Fehler setzen
                 ERREICHBAR.labels(url=ergebnis["url"]).set(0)
                 VERSUCHSDAUER.labels(url=ergebnis["url"]).set(ergebnis["dauer"])
+                # Alten Statuscode entfernen: Es gab keine Antwort, also darf
+                # auch kein Statuscode mehr ausgeliefert werden. Sonst bliebe
+                # der letzte erfolgreiche Wert stehen und sähe aktuell aus.
+                try:
+                    STATUS.remove(ergebnis["url"])
+                except KeyError:
+                    # Zeitreihe existiert noch nicht - URL war von Anfang an
+                    # nicht erreichbar. Erwarteter Fall, kein Fehler.
+                    pass
 
         # 60 Sekunden warten, bevor die Schleife erneut durchläuft
         time.sleep(60)
