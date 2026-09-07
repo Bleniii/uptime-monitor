@@ -142,3 +142,10 @@ Anwendung kennenzulernen: Systemdienste, Containerisierung, automatisierte
 Tests, eine CI/CD-Pipeline und Observability mit Prometheus und Grafana. Der
 Monitor selbst ist bewusst klein gehalten, damit der Fokus auf dem Drumherum
 liegt.
+
+Entstanden ist das Projekt mit Unterstützung eines Sprachmodells — erklärend
+und korrigierend, nicht als Lieferant fertigen Codes. Der aufschlussreichste
+Teil war dabei nicht das Erzeugen, sondern das Prüfen: Der eingefrorene
+Statuscode in `uptime_status` fiel erst auf, als das erwartete Verhalten bei
+einem Ausfall gegen das tatsächliche gehalten wurde. Die Tests blieben grün,
+das Dashboard unauffällig.
