@@ -3,6 +3,8 @@ services:
     build: .
     ports:
       - "8000:8000"
+    volumes:
+      - ./targets.txt:/app/targets.txt:ro
     restart: unless-stopped
 
   prometheus:

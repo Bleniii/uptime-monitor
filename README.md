@@ -2,130 +2,114 @@
 
 [![Tests](https://github.com/Bleniii/uptime-monitor/actions/workflows/tests.yml/badge.svg)](https://github.com/Bleniii/uptime-monitor/actions/workflows/tests.yml)
 
-Ein kleines Werkzeug, das prüft, ob Websites erreichbar sind, die Ergebnisse
-protokolliert und als Metriken für Prometheus bereitstellt.
+Prüft, ob konfigurierte Websites erreichbar sind, protokolliert das Ergebnis
+und stellt es als Metriken für Prometheus bereit. Grafana zeigt den Verlauf.
+
+![Grafana-Dashboard mit Verfügbarkeit, Antwortzeit und Statuscode](docs/images/dashboard.png)
+
 
 ## Status
 
 - [x] URL-Abfrage mit Statuscode und Antwortzeit
 - [x] Konfiguration über Datei, Logging
-- [x] Fehlerbehandlung: Timeout, Verbindungsfehler, HTTP-Fehler
-- [x] DNS-Fehler von Verbindungsfehlern trennen
+- [x] Fehlerbehandlung: Timeout, DNS-Fehler, Verbindungsfehler, HTTP-Fehler
 - [x] Unit-Tests mit pytest und Mocking
 - [x] Betrieb als systemd-Service
 - [x] Docker-Container
 - [x] GitHub-Actions-Pipeline mit Tests und Image-Build
 - [x] `/metrics`-Endpoint für Prometheus
-- [x] Prometheus und Grafana über docker-compose
+- [x] Prometheus und Grafana über docker compose
 - [x] Dashboard: Verfügbarkeit, Antwortzeit, Statuscode
-- [ ] Dashboard als Code ins Repository
+- [x] Datenquelle und Dashboard als Code provisioniert
+- [x] `targets.txt` als Volume — Konfigurationsänderung ohne Rebuild
 - [ ] Alarmregel für `uptime_erreichbar == 0`
-- [ ] Versionierung und Dokumentation: Einführung und Code-Dokumentation
-- [ ] Wissenstest zum Projekt und Dokumentation abschliessen
+- [ ] Metrik-Logik in eine testbare Funktion auslagern
+- [ ] Code-Dokumentation nachführen
 
 ## Funktion
 
-- Prüft die in `targets.txt` konfigurierten URLs, alle 60 Sekunden
+- Prüft die in `targets.txt` konfigurierten URLs alle 60 Sekunden
 - Erfasst HTTP-Statuscode und Antwortzeit
-- Unterscheidet Erfolg (INFO), HTTP-Fehler ab Status 400 (WARNING) und
-  ausbleibende Antwort durch Timeout oder Verbindungsfehler (ERROR)
+- Unterscheidet Erfolg (INFO), HTTP-Fehler ab 400 (WARNING) und
+  ausbleibende Antwort durch Timeout, DNS- oder Verbindungsfehler (ERROR)
 - Schreibt nach stdout, damit systemd oder Docker das Logging übernehmen
-- Stellt drei Metriken unter `http://localhost:8000/metrics` bereit
+- Stellt drei Metriken unter `/metrics` bereit
 
-## Technik
-
-Python 3.11, requests, prometheus-client, pytest mit unittest.mock,
-systemd, Docker, docker compose, Prometheus, Grafana, GitHub Actions
-
-## Installation
+## Schnellstart
 
 ```bash
 git clone https://github.com/Bleniii/uptime-monitor.git
 cd uptime-monitor
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-```
-
-## Verwendung
-
-URLs in `targets.txt` eintragen, eine pro Zeile. Dann:
-
-```bash
-python monitor.py
-```
-
-Das Programm läuft dauerhaft und prüft alle 60 Sekunden. Metriken unter
-`http://localhost:8000/metrics`, Beenden mit `Strg+C`.
-
-## Metriken
-
-| Metrik | Bedeutung |
-|---|---|
-| `uptime_erreichbar{url}` | 1 = Antwort erhalten, 0 = keine |
-| `uptime_status{url}` | HTTP-Statuscode. Die Zeitreihe verschwindet, sobald keine Antwort mehr kommt — ein stehengebliebener alter Wert wäre irreführend |
-| `uptime_versuchsdauer_sekunden{url}` | Dauer des Versuchs, auch im Fehlerfall |
-
-`uptime_erreichbar` und `uptime_status` beantworten verschiedene Fragen: Ein
-Statuscode 404 bedeutet, dass der Server geantwortet hat — erreichbar ist er
-also. Für die Alarmierung ergibt das zwei getrennte Regeln, eine für die
-Infrastruktur und eine für die Anwendung.
-
-## Monitoring-Stack
-
-Prometheus holt die Metriken ab, Grafana stellt sie dar. Alle drei Dienste
-laufen über eine `docker-compose.yml`:
-
-```bash
 docker compose up -d --build
-docker compose ps
 ```
 
 | Dienst | Adresse | Zweck |
 |---|---|---|
 | Monitor | http://localhost:8000/metrics | Liefert die Messwerte |
 | Prometheus | http://localhost:9090 | Sammelt und speichert sie |
-| Grafana | http://localhost:3000 | Zeigt sie als Dashboard |
+| Grafana | http://localhost:3000 | Zeigt das Dashboard |
 
-Grafana meldet sich mit `admin` / `admin`. Die Prometheus-Datenquelle wird
-beim Start aus `grafana/provisioning/` eingelesen, sie muss nicht von Hand
-angelegt werden.
+Grafana meldet sich mit `admin` / `admin`. Datenquelle und Dashboard werden
+beim Start aus `grafana/provisioning/` eingelesen — nichts von Hand anlegen.
 
-Prometheus erreicht den Monitor über den Servicenamen `monitor:8000` im
-internen Compose-Netzwerk — nicht über `localhost`, das im Container auf den
-Container selbst zeigt.
+## Ziele pflegen
 
-Die gesammelten Daten liegen in zwei Named Volumes (`prometheus-data`,
-`grafana-data`). `docker compose down` lässt sie bestehen, `docker compose
-down -v` löscht sie.
-
-## Tests
+URLs stehen in `targets.txt`, eine pro Zeile. Die Datei ist als Volume
+eingehängt, ein Rebuild ist nicht nötig:
 
 ```bash
+docker compose restart monitor
+```
+
+Der Neustart ist erforderlich, weil die Liste beim Programmstart einmal
+eingelesen wird.
+
+## Metriken
+
+| Metrik | Bedeutung |
+|---|---|
+| `uptime_erreichbar{url}` | 1 = Antwort erhalten, 0 = keine |
+| `uptime_status{url}` | HTTP-Statuscode. Die Zeitreihe endet, sobald keine Antwort mehr kommt — ein stehengebliebener Wert wäre irreführend |
+| `uptime_versuchsdauer_sekunden{url}` | Dauer des Versuchs, auch im Fehlerfall |
+
+`uptime_erreichbar` und `uptime_status` beantworten verschiedene Fragen: Ein
+404 bedeutet, dass der Server geantwortet hat. Für die Alarmierung ergibt das
+zwei getrennte Regeln — eine für die Infrastruktur, eine für die Anwendung.
+
+## Architektur
+
+Prometheus erreicht den Monitor über den Servicenamen `monitor:8000` im
+internen Compose-Netzwerk, Grafana erreicht Prometheus als `prometheus:9090`.
+Die veröffentlichten Ports dienen nur dem Zugriff vom Host aus.
+
+Zustandsdaten liegen in Named Volumes (`prometheus-data`, `grafana-data`),
+Konfiguration wird schreibgeschützt aus dem Repository eingehängt.
+`docker compose down` lässt die Volumes bestehen, `down -v` löscht sie —
+betroffen ist dann die Messreihe, nicht das Dashboard.
+
+## Entwicklung und Tests
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
 pip install -r requirements-dev.txt
 pytest -v
 ```
 
 Die Tests für `pruefe_url` ersetzen `requests.get` durch einen Mock und laufen
-ohne Netzwerkzugriff.
+ohne Netzwerkzugriff. Bei jedem Push und Pull Request führt GitHub Actions
+dieselben Tests aus und baut das Image.
 
-Bei jedem Push und Pull Request führt GitHub Actions dieselben Tests aus und
-baut das Docker-Image. Konfiguration unter `.github/workflows/tests.yml`.
+## Betrieb ohne Container
 
-## Betrieb als Dienst
-
-Die systemd-Unit liegt unter `systemd/`. Der Service ist vom Typ `simple` und
-läuft dauerhaft; `Restart=always` startet ihn nach einem Absturz neu.
-
-Vor der Verwendung anzupassen in `systemd/uptime-monitor.service`:
+Der Compose-Stack ist die vorgesehene Betriebsart. Für Umgebungen ohne
+Container-Laufzeit liegt unter `systemd/` eine Unit-Datei. Anzupassen:
 
 ```ini
 User=<benutzername>
 WorkingDirectory=<pfad-zum-projektordner>
 ExecStart=<pfad-zum-projektordner>/.venv/bin/python monitor.py
 ```
-
-Dann:
 
 ```bash
 sudo cp systemd/uptime-monitor.service /etc/systemd/system/
@@ -134,33 +118,27 @@ sudo systemctl enable --now uptime-monitor.service
 journalctl -u uptime-monitor.service -f
 ```
 
-## Docker
+Die Unit ist entstanden, bevor der Container dazukam, und bewusst erhalten
+geblieben: Sie zeigt denselben Dienst einmal als Prozess unter systemd und
+einmal als Container, mit denselben Anforderungen an Neustartverhalten und
+Logging.
 
-Der normale Weg ist `docker compose up` (siehe Monitoring-Stack). Nur das
-Image allein bauen und starten:
+**Port 8000 ist einmal vergeben.** Compose-Stack und systemd-Dienst starten
+dasselbe Programm auf demselben Port — die laufende Variante muss gestoppt
+sein, bevor die andere startet.
 
-```bash
-docker build -t uptime-monitor .
-docker run --rm -p 8000:8000 uptime-monitor
-```
+## Weitere Dokumentation
 
-Der Container läuft unter einem unprivilegierten Benutzer. `-p 8000:8000`
-verbindet den Container-Port mit dem Host — ohne diese Angabe ist `/metrics`
-von aussen nicht erreichbar.
-
-**Port 8000 ist nur einmal vergeben.** systemd-Dienst, Compose-Stack und
-Einzelcontainer schliessen sich gegenseitig aus. Läuft eines davon bereits,
-scheitert das nächste mit `address already in use`.
+| Datei | Inhalt |
+|---|---|
+| `CHEATSHEET.md` | Befehlsreferenz für den Alltag |
+| Konzeptdokument | Aufbau, Anwendungsfälle, Entwurfsentscheidungen |
+| Projektdokumentation | Ablauf der neun Stufen und Learnings |
 
 ## Hintergrund
 
-Dieses Projekt ist als Lernprojekt entstanden. Ziel war, Linux und typische
-DevOps-Werkzeuge an einer echten Anwendung kennenzulernen: Systemdienste mit
-systemd, Containerisierung mit Docker, automatisierte Tests, eine
-CI/CD-Pipeline und Observability mit Prometheus und Grafana. Der
-Uptime-Monitor selbst ist bewusst klein gehalten, damit der Fokus auf dem
-Drumherum liegt.
-
-## Lizenz
-
-MIT — siehe [LICENSE](LICENSE).
+Ein Lernprojekt. Ziel war, Linux und typische DevOps-Werkzeuge an einer echten
+Anwendung kennenzulernen: Systemdienste, Containerisierung, automatisierte
+Tests, eine CI/CD-Pipeline und Observability mit Prometheus und Grafana. Der
+Monitor selbst ist bewusst klein gehalten, damit der Fokus auf dem Drumherum
+liegt.
