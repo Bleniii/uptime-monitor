@@ -7,7 +7,6 @@ und stellt es als Metriken für Prometheus bereit. Grafana zeigt den Verlauf.
 
 ![Grafana-Dashboard mit Verfügbarkeit, Antwortzeit und Statuscode](docs/images/dashboard.png)
 
-
 ## Status
 
 - [x] URL-Abfrage mit Statuscode und Antwortzeit
@@ -22,6 +21,7 @@ und stellt es als Metriken für Prometheus bereit. Grafana zeigt den Verlauf.
 - [x] Dashboard: Verfügbarkeit, Antwortzeit, Statuscode
 - [x] Datenquelle und Dashboard als Code provisioniert
 - [x] `targets.txt` als Volume — Konfigurationsänderung ohne Rebuild
+- [x] Reproduzierbarkeit geprüft: Klon und Start auf einem zweiten Rechner (Debian 12)
 - [ ] Alarmregel für `uptime_erreichbar == 0`
 - [ ] Metrik-Logik in eine testbare Funktion auslagern
 - [ ] Code-Dokumentation nachführen
@@ -37,8 +37,12 @@ und stellt es als Metriken für Prometheus bereit. Grafana zeigt den Verlauf.
 
 ## Schnellstart
 
+Voraussetzung: Docker mit Compose v2 (`docker compose version` muss `v2.x`
+zeigen). Auf Debian 12 ist das kein Standardpaket — Installationshinweise
+in `CHEATSHEET.md`.
+
 ```bash
-git clone https://github.com/Bleniii/uptime-monitor.git
+git clone git@github.com:ibradericko/uptime-monitor.git
 cd uptime-monitor
 docker compose up -d --build
 ```
@@ -51,6 +55,23 @@ docker compose up -d --build
 
 Grafana meldet sich mit `admin` / `admin`. Datenquelle und Dashboard werden
 beim Start aus `grafana/provisioning/` eingelesen — nichts von Hand anlegen.
+
+### Nach dem Klonen
+
+Git speichert nur das Ausführungs-Bit, keine Lese- oder Schreibrechte. Je
+nach `umask` des Systems sind die Provisioning-Dateien nach dem Klonen für
+andere Benutzer nicht lesbar. Grafana läuft im Container unter einer
+eigenen UID und kann sie dann nicht öffnen — der Container startet, das
+Dashboard bleibt aber leer, ohne Fehlermeldung an sichtbarer Stelle:
+
+```bash
+chmod -R o+rX grafana/
+docker compose restart grafana
+```
+
+Das grosse `X` setzt das Ausführungsrecht nur bei Verzeichnissen, nicht bei
+Dateien. Konfiguration ohne Geheimnisse für alle lesbar zu machen ist keine
+Sicherheitslücke.
 
 ## Ziele pflegen
 
@@ -143,9 +164,13 @@ Tests, eine CI/CD-Pipeline und Observability mit Prometheus und Grafana. Der
 Monitor selbst ist bewusst klein gehalten, damit der Fokus auf dem Drumherum
 liegt.
 
-Entstanden ist das Projekt mit Unterstützung eines Sprachmodells — erklärend
-und korrigierend, nicht als Lieferant fertigen Codes. Der aufschlussreichste
-Teil war dabei nicht das Erzeugen, sondern das Prüfen: Der eingefrorene
-Statuscode in `uptime_status` fiel erst auf, als das erwartete Verhalten bei
-einem Ausfall gegen das tatsächliche gehalten wurde. Die Tests blieben grün,
-das Dashboard unauffällig.
+Entstanden ist das Projekt in Zusammenarbeit mit einem Sprachmodell. Die
+Anwendungslogik in `monitor.py` habe ich grösstenteils selbst geschrieben,
+nachdem mir das jeweilige Konzept erklärt wurde. Bei der Infrastruktur;
+Compose-Datei, Prometheus- und Grafana-Konfiguration, habe ich öfter fertige
+Blöcke übernommen und sie danach Zeile für Zeile nachvollzogen, statt sie
+selbst zu tippen. Der aufschlussreichste Moment lag trotzdem nicht im
+Schreiben, sondern im Prüfen: Der eingefrorene Statuscode in `uptime_status`
+fiel erst auf, als ich das erwartete Verhalten bei einem Ausfall gegen das
+tatsächliche gehalten habe. Die Tests blieben grün, das Dashboard
+unauffällig.
