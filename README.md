@@ -158,19 +158,6 @@ sein, bevor die andere startet.
 
 ## Hintergrund
 
-Ein Lernprojekt. Ziel war, Linux und typische DevOps-Werkzeuge an einer echten
-Anwendung kennenzulernen: Systemdienste, Containerisierung, automatisierte
-Tests, eine CI/CD-Pipeline und Observability mit Prometheus und Grafana. Der
-Monitor selbst ist bewusst klein gehalten, damit der Fokus auf dem Drumherum
-liegt.
+Eine Website fällt nachts aus, der Kunde merkt es am Morgen als Erster und ruft an, bevor man reagiert. Genau diesen Moment soll ein Uptime-Monitor verhindern. Solche Werkzeuge gibt es fertig zu kaufen. Meine Motivation war ein Tool zu erstellen von Scratch, mithilfe von KI. Dabei hab ich KI nicht einfach 'zum Viben' genutzt, sondern um echte Lernprozesse bis zum fertige Produkt zu gehen. Jeder Output wurde mir erklärt, jeder Codezeile wurde mir beschrieben, oft wurde ich auch selbst herausgefordert Funktionen, Bausteine zusammenzustellen mit unfertigen/teilfertigen Infos. Ziel war vom kleinen Skript, über Tests (Python), Systemdienst bis zum Dashboard (Prometheus,Grafana) ein Tool zu erstellen das den Uptime-Verlauf zeigt.
 
-Entstanden ist das Projekt in Zusammenarbeit mit einem Sprachmodell. Die
-Anwendungslogik in `monitor.py` habe ich grösstenteils selbst geschrieben,
-nachdem mir das jeweilige Konzept erklärt wurde. Bei der Infrastruktur;
-Compose-Datei, Prometheus- und Grafana-Konfiguration, habe ich öfter fertige
-Blöcke übernommen und sie danach Zeile für Zeile nachvollzogen, statt sie
-selbst zu tippen. Der aufschlussreichste Moment lag trotzdem nicht im
-Schreiben, sondern im Prüfen: Der eingefrorene Statuscode in `uptime_status`
-fiel erst auf, als ich das erwartete Verhalten bei einem Ausfall gegen das
-tatsächliche gehalten habe. Die Tests blieben grün, das Dashboard
-unauffällig.
+Der Zweck liegt im Weg dorthin: Tests, Container, CI/CD, Observability und Infrastructure as Code waren vorher Begriffe, die ich kannte, aber nie angefasst hatte.
