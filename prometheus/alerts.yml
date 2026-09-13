@@ -1,0 +1,20 @@
+groups:
+  - name: uptime
+    rules:
+      - alert: WebsiteNichtErreichbar
+        expr: uptime_erreichbar == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "{{ $labels.url }} antwortet nicht"
+          description: "Seit mindestens 2 Minuten kommt keine Antwort. Prüfen: Netzwerk, DNS, Dienst."
+
+      - alert: WebsiteLiefertFehler
+        expr: uptime_status >= 400
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "{{ $labels.url }} liefert Status {{ $value }}"
+          description: "Der Server antwortet, die Anwendung meldet aber einen Fehler."
